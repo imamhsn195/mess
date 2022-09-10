@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mess/components/drawer.dart';
-import 'package:mess/components/transaction_table.dart';
+import 'package:mess/components/transactions.dart';
 
 class Welcome extends StatefulWidget {
   const Welcome({Key? key, required this.title}) : super(key: key);
@@ -16,7 +16,7 @@ class _WelcomeState extends State<Welcome> {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        drawer: const SideBar(),
+        // drawer: const SideBar(),
         body: const TransactionList(),
     );
   }
