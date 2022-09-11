@@ -77,19 +77,19 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-          RaisedButton(
+          TextButton(
             onPressed: _create,
             child: const Text("Create"),
           ),
-          RaisedButton(
+          TextButton(
             onPressed: _read,
             child: const Text("Read"),
           ),
-          RaisedButton(
+          TextButton(
             onPressed: _update,
             child: const Text("Update"),
           ),
-          RaisedButton(
+          TextButton(
             onPressed: _delete,
             child: const Text("Delete"),
           ),

@@ -1,12 +1,14 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 class TransactionList extends StatefulWidget {
-  const TransactionList({Key? key}) : super(key: key);
+  const TransactionList({Key? key, required this.title}) : super(key: key);
+  final String title;
+  static String id = "transactions";
   @override
   State<TransactionList> createState() => _TransactionListState();
 }
@@ -118,6 +120,9 @@ class _TransactionListState extends State<TransactionList> {
                       _descriptionController.text = '';
                     }
                     Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Transaction created successfully"),),
+                    );
                   },
                   child: const Text("Add")
               )
@@ -202,6 +207,9 @@ class _TransactionListState extends State<TransactionList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title)
+      ),
       body: StreamBuilder(
           stream: _transactions.snapshots(),
           builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
