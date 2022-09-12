@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mess/pages/transactions.dart';
 import 'package:mess/pages/welcome.dart';
-import '../pages/expenses.dart';
-import '../pages/registration.dart';
+import '../pages/balance.dart';
+import '../pages/members.dart';
 
 class SideBar extends StatefulWidget {
   const SideBar({Key? key}) : super(key: key);
@@ -27,21 +27,21 @@ class _SideBarState extends State<SideBar> {
             },
           ),
           ListTile(
-            title: const Text("Create User"),
+            title: const Text("Members"),
             onTap: (){
-              Navigator.pushNamed(context, Registration.id);
+              Navigator.pushNamed(context, Members.id);
             },
           ),
           ListTile(
             title: const Text("Transactions"),
             onTap: (){
-              Navigator.pushNamed(context, TransactionList.id);
+              Navigator.pushNamed(context, Transactions.id);
             },
           ),
           ListTile(
-            title: const Text("Expenses"),
+            title: const Text("Balances"),
             onTap: (){
-              Navigator.pushNamed(context, Expenses.id);
+              Navigator.pushNamed(context, Balances.id);
             },
           )
         ],

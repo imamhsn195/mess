@@ -1,99 +1,91 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(MyApp());
-}
+Map<String, String> cities = <String, String>{
+  'New York': 'NYC',
+  'Los Angeles': 'LA',
+  'San Francisco': 'SF',
+  'Chicago': 'CH',
+  'Miami': 'MI',
+};
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+void main() => runApp(const DropdownButtonApp());
+
+class DropdownButtonApp extends StatelessWidget {
+
+  const DropdownButtonApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MyHomePage(),
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(title: const Text('DropdownButton Sample')),
+        body: const Center(child: DropdownButtonExample()),
+      ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+class DropdownButtonExample extends StatefulWidget {
+  const DropdownButtonExample({super.key});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<DropdownButtonExample> createState() => _DropdownButtonExampleState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _DropdownButtonExampleState extends State<DropdownButtonExample> {
 
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-
-  void _create() async {
-    try {
-      await firestore.collection('users').doc('testUser').set({
-        'firstName': 'John',
-        'lastName': 'Peter',
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _read() async {
-    DocumentSnapshot documentSnapshot;
-    try {
-      documentSnapshot = await firestore.collection('users').doc('testUser').get();
-      print(documentSnapshot.data);
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _update() async {
-    try {
-      firestore.collection('users').doc('testUser').update({
-        'firstName': 'Alan',
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _delete() async {
-    try {
-      firestore.collection('users').doc('testUser').delete();
-    } catch (e) {
-      print(e);
-    }
-  }
-
+  final CollectionReference _transactions = FirebaseFirestore.instance.collection('users').snapshots() as CollectionReference<Object?>;
+  dynamic selectedItem;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Flutter CRUD with Firebase"),
-      ),
-      body: Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-          TextButton(
-            onPressed: _create,
-            child: const Text("Create"),
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          StreamBuilder(
+            stream: _transactions.snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+              if(streamSnapshot.hasData){
+                return  Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: DropdownButton<String>(
+                    value: selectedItem,
+                    onChanged: (String? value) {
+                      // This is called when the user selects an item.
+                      setState(() => selectedItem = value!);
+                    },
+                    selectedItemBuilder: (BuildContext context) {
+                      return cities.values.map<Widget>((String item) {
+                        // This is the widget that will be shown when you select an item.
+                        // Here custom text style, alignment and layout size can be applied
+                        // to selected item string.
+                        return Container(
+                          alignment: Alignment.centerLeft,
+                          constraints: const BoxConstraints(minWidth: 100),
+                          child: Text(
+                            item,
+                            style: const TextStyle(
+                                color: Colors.blue, fontWeight: FontWeight.w600),
+                          ),
+                        );
+                      }).toList();
+                    },
+                    items: cities.keys.map<DropdownMenuItem<String>>((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
+                  ),
+                );
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
           ),
-          TextButton(
-            onPressed: _read,
-            child: const Text("Read"),
-          ),
-          TextButton(
-            onPressed: _update,
-            child: const Text("Update"),
-          ),
-          TextButton(
-            onPressed: _delete,
-            child: const Text("Delete"),
-          ),
-        ]),
+          Text('Select a city:', style: Theme.of(context).textTheme.bodyLarge),
+
+        ],
       ),
     );
   }

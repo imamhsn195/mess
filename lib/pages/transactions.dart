@@ -1,31 +1,29 @@
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class TransactionList extends StatefulWidget {
-  const TransactionList({Key? key, required this.title}) : super(key: key);
+class Transactions extends StatefulWidget {
+  const Transactions({Key? key, required this.title}) : super(key: key);
   final String title;
   static String id = "transactions";
   @override
-  State<TransactionList> createState() => _TransactionListState();
+  State<Transactions> createState() => _TransactionsState();
 }
 
-class _TransactionListState extends State<TransactionList> {
+class _TransactionsState extends State<Transactions> {
 
   final CollectionReference _transactions = FirebaseFirestore.instance.collection('transactions');
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   DateTime _date = DateTime.now();
+
   String formattedDate(timeStamp){
     var dateFromTimeStamp = DateTime.fromMillisecondsSinceEpoch(timeStamp.seconds * 1000);
     return DateFormat("dd-MM-yyyy hh:mm a").format(dateFromTimeStamp);
   }
-
   Future<void> _delete(String transactionId) async{
-
     showCupertinoDialog(
         context: context,
         builder: (BuildContext ctx) {
@@ -40,7 +38,7 @@ class _TransactionListState extends State<TransactionList> {
                     Navigator.of(context).pop();
                     await _transactions.doc(transactionId).delete();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Transaction Deleted successfully"),),
+                      const SnackBar(content: Text("Transaction Deleted successfully"))
                     );
                   });
                 },
@@ -59,23 +57,21 @@ class _TransactionListState extends State<TransactionList> {
               )
             ],
           );
-        });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Transaction Deleted successfully"),),
-    );
+        }
+      );
   }
 
   Future<void> _create() async{
   await showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
-      builder: (BuildContext context){
+      builder: (BuildContext ctx){
         return Padding(
           padding: EdgeInsets.only(
               top: 20,
               left: 20,
               right: 20,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,6 +107,10 @@ class _TransactionListState extends State<TransactionList> {
                 height: 20,
               ),
               ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.black,
+                    minimumSize: const Size.fromHeight(50), // NEW
+                  ),
                   onPressed: () async{
                     final double? amount = double.tryParse(_amountController.text);
                     final String descriptions = _descriptionController.text;
@@ -124,7 +124,7 @@ class _TransactionListState extends State<TransactionList> {
                       const SnackBar(content: Text("Transaction created successfully"),),
                     );
                   },
-                  child: const Text("Add")
+                child: const Text("Add"),
               )
             ],
           ),
@@ -140,14 +140,15 @@ class _TransactionListState extends State<TransactionList> {
     _amountController.text = documentSnapshot['amount'].toString();
   }
   await showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
-      builder: (BuildContext context){
+      builder: (BuildContext ctx){
         return Padding(
             padding: EdgeInsets.only(
               top: 20,
               left: 20,
               right: 20,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,6 +184,10 @@ class _TransactionListState extends State<TransactionList> {
                   height: 20,
                 ),
                 ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.black,
+                      minimumSize: const Size.fromHeight(50), // NEW
+                    ),
                     onPressed: () async{
                       final double? amount = double.tryParse(_amountController.text);
                       final String descriptions = _descriptionController.text;
@@ -207,48 +212,50 @@ class _TransactionListState extends State<TransactionList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title)
-      ),
-      body: StreamBuilder(
-          stream: _transactions.snapshots(),
-          builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
-            if(streamSnapshot.hasData){
-              return ListView.builder(
-                  itemCount: streamSnapshot.data!.docs.length,
-                  itemBuilder: (context, index){
-                    final DocumentSnapshot documentSnapshot = streamSnapshot.data!.docs[index];
-                    return Card(
-                      margin: const EdgeInsets.all(10.0),
-                      child: ListTile(
-                        title: Text("AED ${documentSnapshot["amount"].toString().split('.')[0]}"),
-                        subtitle:Text(formattedDate(documentSnapshot["date"])) ,
-                        trailing: SizedBox(
-                          width: 100,
-                          child: Row(
-                            children: [
-                              IconButton(
-                                  onPressed: (){
-                                    _update(documentSnapshot);
-                                  },
-                                  icon: const Icon(Icons.edit)
-                              ),
-                              IconButton(
-                                  onPressed: (){
-                                    _delete(documentSnapshot.id);
-                                  },
-                                  icon: const Icon(Icons.delete)
-                              ),
-                            ],
+      appBar: AppBar( title: Text(widget.title)),
+      body: SafeArea(
+        child: StreamBuilder(
+            stream: _transactions.snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+              if(streamSnapshot.hasData){
+                return ListView.builder(
+                    itemCount: streamSnapshot.data!.docs.length,
+                    itemBuilder: (context, index){
+                      final DocumentSnapshot documentSnapshot = streamSnapshot.data!.docs[index];
+                      final String descriptions = "${documentSnapshot['descriptions']} on ${formattedDate(documentSnapshot["date"])}";
+                      final String title = "AED ${documentSnapshot["amount"].toString().split('.')[0]}";
+                      return Card(
+                        margin: const EdgeInsets.all(10.0),
+                        child: ListTile(
+                          title: Text(title),
+                          subtitle:Text(descriptions),
+                          trailing: SizedBox(
+                            width: 100,
+                            child: Row(
+                              children: [
+                                IconButton(
+                                    onPressed: (){
+                                      _update(documentSnapshot);
+                                    },
+                                    icon: const Icon(Icons.edit)
+                                ),
+                                IconButton(
+                                    onPressed: (){
+                                      _delete(documentSnapshot.id);
+                                    },
+                                    icon: const Icon(Icons.delete)
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-              );
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
+                      );
+                    },
+                );
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child:const Icon(Icons.add),

@@ -23,7 +23,7 @@ class _WelcomeState extends State<Welcome> {
           ],
         ),
         drawer: const SideBar(),
-        body: const TransactionList(title: "All Transactions"),
+        body: const Transactions(title: "All Transactions"),
     );
   }
 }
