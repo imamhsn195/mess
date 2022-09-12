@@ -18,8 +18,8 @@ class _TransactionsState extends State<Transactions> {
   final CollectionReference _members = FirebaseFirestore.instance.collection('members');
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-
   DateTime _date = DateTime.now();
+  String _selectedMember = 'RNFEdd36gntDfZ9mGo9W';
 
   late List<QueryDocumentSnapshot<Object?>> allMembers;
 
@@ -28,14 +28,11 @@ class _TransactionsState extends State<Transactions> {
       final memberSnapshot = await _members.get();
       if(memberSnapshot.docs.isNotEmpty) {
         allMembers = memberSnapshot.docs;
-        print('All members: $allMembers');
       }
     } catch (error) {
       print('Error caught while getting data:  $error');
     }
   }
-
-  String _selectedMember = 'RNFEdd36gntDfZ9mGo9W';
 
   String formattedDate(timeStamp){
     var dateFromTimeStamp = DateTime.fromMillisecondsSinceEpoch(timeStamp.seconds * 1000);
@@ -112,13 +109,14 @@ class _TransactionsState extends State<Transactions> {
                 padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10.0),
                   child: Text("Members")
               ),
-              DropdownButton(
-                  value: _selectedMember ,
+              DropdownButtonFormField(
+                  value: _selectedMember,
                   isExpanded: true,
-                  // DropdownMenuItem( value: 1, child: Text('Item 1'))
                   items: allMembers.map((item) =>  DropdownMenuItem( value: item.id, child: Text(item.get('name')))).toList(),
                   onChanged: (String? value){
+                    setState((){
                       _selectedMember = value!;
+                    });
                   }
               ),
               TextField(
@@ -202,7 +200,9 @@ class _TransactionsState extends State<Transactions> {
                     // DropdownMenuItem( value: 1, child: Text('Item 1'))
                     items: allMembers.map((item) =>  DropdownMenuItem( value: item.id, child: Text(item.get('name')))).toList(),
                     onChanged: (String? value){
-                      _selectedMember = value!;
+                      setState((){
+                        _selectedMember = value!;
+                      });
                     }
                 ),
                 TextField(
