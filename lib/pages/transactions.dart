@@ -15,14 +15,33 @@ class Transactions extends StatefulWidget {
 class _TransactionsState extends State<Transactions> {
 
   final CollectionReference _transactions = FirebaseFirestore.instance.collection('transactions');
+  final CollectionReference _members = FirebaseFirestore.instance.collection('members');
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+
   DateTime _date = DateTime.now();
+
+  late List<QueryDocumentSnapshot<Object?>> allMembers;
+
+  Future<void> _getAllRecords() async {
+    try {
+      final memberSnapshot = await _members.get();
+      if(memberSnapshot.docs.isNotEmpty) {
+        allMembers = memberSnapshot.docs;
+        print('All members: $allMembers');
+      }
+    } catch (error) {
+      print('Error caught while getting data:  $error');
+    }
+  }
+
+  String _selectedMember = 'RNFEdd36gntDfZ9mGo9W';
 
   String formattedDate(timeStamp){
     var dateFromTimeStamp = DateTime.fromMillisecondsSinceEpoch(timeStamp.seconds * 1000);
     return DateFormat("dd-MM-yyyy hh:mm a").format(dateFromTimeStamp);
   }
+
   Future<void> _delete(String transactionId) async{
     showCupertinoDialog(
         context: context,
@@ -87,24 +106,29 @@ class _TransactionsState extends State<Transactions> {
                 mode: DateTimeFieldPickerMode.dateAndTime,
                 autovalidateMode: AutovalidateMode.always,
                 validator: (e) => (e?.day ?? 0) == 1 ? 'Please not the first day' : null,
-                onDateSelected: (DateTime value) {
-                  _date = value;
-                },
+                onDateSelected: (DateTime value) {_date = value;},
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10.0),
+                  child: Text("Members")
+              ),
+              DropdownButton(
+                  value: _selectedMember ,
+                  isExpanded: true,
+                  // DropdownMenuItem( value: 1, child: Text('Item 1'))
+                  items: allMembers.map((item) =>  DropdownMenuItem( value: item.id, child: Text(item.get('name')))).toList(),
+                  onChanged: (String? value){
+                      _selectedMember = value!;
+                  }
               ),
               TextField(
                 decoration: const InputDecoration(labelText: "descriptions"),
                 controller: _descriptionController,
               ),
-              const SizedBox(
-                height: 20,
-              ),
               TextField(
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: "amount"),
                 controller: _amountController,
-              ),
-              const SizedBox(
-                height: 20,
               ),
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -115,7 +139,7 @@ class _TransactionsState extends State<Transactions> {
                     final double? amount = double.tryParse(_amountController.text);
                     final String descriptions = _descriptionController.text;
                     if(amount != null){
-                      await _transactions.add({ "date": _date, "amount" : amount, "descriptions" : descriptions });
+                      await _transactions.add({ "date": _date, "created_by" : _selectedMember, "amount" : amount, "descriptions" : descriptions });
                       _amountController.text = '';
                       _descriptionController.text = '';
                     }
@@ -168,6 +192,19 @@ class _TransactionsState extends State<Transactions> {
                     _date = value;
                   },
                 ),
+                const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10.0),
+                    child: Text("Members")
+                ),
+                DropdownButton(
+                    value: _selectedMember ,
+                    isExpanded: true,
+                    // DropdownMenuItem( value: 1, child: Text('Item 1'))
+                    items: allMembers.map((item) =>  DropdownMenuItem( value: item.id, child: Text(item.get('name')))).toList(),
+                    onChanged: (String? value){
+                      _selectedMember = value!;
+                    }
+                ),
                 TextField(
                   decoration: const InputDecoration(labelText: "descriptions"),
                   controller: _descriptionController,
@@ -193,7 +230,7 @@ class _TransactionsState extends State<Transactions> {
                       final String descriptions = _descriptionController.text;
                       if(amount != null){
                         await _transactions.doc(documentSnapshot.id)
-                        .update({ "date": _date, "amount" : amount, "descriptions" : descriptions  });
+                        .update({ "date": _date, "created_by" : _selectedMember, "amount" : amount, "descriptions" : descriptions  });
                         _date = DateTime.now();
                         _descriptionController.text = '';
                         _amountController.text = '';
@@ -208,6 +245,12 @@ class _TransactionsState extends State<Transactions> {
       }
   );
 }
+
+  @override
+  void initState() {
+    super.initState();
+    _getAllRecords();
+  }
 
   @override
   Widget build(BuildContext context) {
