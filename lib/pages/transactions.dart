@@ -194,7 +194,7 @@ class _TransactionsState extends State<Transactions> {
                     padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10.0),
                     child: Text("Members")
                 ),
-                DropdownButton(
+                DropdownButtonFormField(
                     value: _selectedMember ,
                     isExpanded: true,
                     // DropdownMenuItem( value: 1, child: Text('Item 1'))
